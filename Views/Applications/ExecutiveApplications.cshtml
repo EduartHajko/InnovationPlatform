@@ -1,0 +1,438 @@
+@model IEnumerable<InnovationPlatform.Models.Application>
+
+@{
+    ViewData["Title"] = "Menaxhimi i Aplikimeve";
+    var experts = ViewBag.Experts as IEnumerable<InnovationPlatform.Models.User>;
+}
+
+@Html.AntiForgeryToken()
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-cogs me-2 text-primary"></i>Menaxhimi i Aplikimeve
+                </h1>
+                <div>
+                    <a asp-action="ExecutiveDashboard" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter and Search -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="statusFilter" class="form-label">Filtro sipas Statusit:</label>
+                            <select class="form-select" id="statusFilter" onchange="filterApplications()">
+                                <option value="">Të gjitha</option>
+                                <option value="I Ri">I Ri</option>
+                                <option value="Në Progres">Në Progres</option>
+                                <option value="Në Mentorim">Në Mentorim</option>
+                                <option value="Në Prezantim">Në Prezantim</option>
+                                <option value="Në Implementim">Në Implementim</option>
+                                <option value="Zbatuar">Zbatuar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="categoryFilter" class="form-label">Filtro sipas Kategorisë:</label>
+                            <select class="form-select" id="categoryFilter" onchange="filterApplications()">
+                                <option value="">Të gjitha</option>
+                                @foreach (var category in Model.Select(a => a.Category?.Name).Distinct().Where(c =>
+                                                                !string.IsNullOrEmpty(c)))
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="expertFilter" class="form-label">Filtro sipas Ekspertit:</label>
+                            <select class="form-select" id="expertFilter" onchange="filterApplications()">
+                                <option value="">Të gjitha</option>
+                                <option value="unassigned">Pa ekspert</option>
+                                @if (experts != null)
+                                {
+                                    @foreach (var expert in experts)
+                                    {
+                                        <option value="@expert.Username">@expert.Username</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="searchInput" class="form-label">Kërko:</label>
+                            <input type="text" class="form-control" id="searchInput"
+                                placeholder="Kërko sipas titullit..." onkeyup="filterApplications()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Lista e Aplikimeve (@Model.Count())
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="applicationsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Titulli</th>
+                                    <th>Aplikuesi</th>
+                                    <th>Kategoria</th>
+                                    <th>Statusi</th>
+                                    <th>Eksperti</th>
+                                    <th>Data</th>
+                                    <th>Veprime</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var application in Model.OrderByDescending(a => a.CreatedAt))
+                                {
+                                    <tr data-status="@application.Status" data-category="@application.Category?.Name"
+                                        data-expert="@(application.AssignedExpert?.Username ?? "unassigned")"
+                                        data-title="@application.Title.ToLower()">
+                                        <td>
+                                            <span class="badge bg-secondary">#@application.Id</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>@application.Title</strong>
+                                                @if (application.Files != null && application.Files.Any())
+                                                {
+                                                    <br>
+
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-paperclip me-1"></i>@application.Files.Count
+                                                        dokument(a)
+                                                    </small>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (application.User != null)
+                                            {
+                                                <div>
+                                                    <strong>@application.User.Username</strong>
+                                                    <br><small class="text-muted">@application.AgeGroup</small>
+                                                    <br><small class="text-muted">@application.Municipality</small>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Anonim</span>
+                                                <br>
+
+                                                <small class="text-muted">@application.AgeGroup</small>
+                                                <br>
+
+                                                <small class="text-muted">@application.Municipality</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-tag me-1"></i>@application.Category?.Name
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm status-select"
+                                                data-application-id="@application.Id"
+                                                onchange="updateStatus(@application.Id, this.value)">
+                                                <option value="I Ri" selected="@(application.Status == "I Ri")">I Ri
+                                                </option>
+                                                <option value="Në Progres" selected="@(application.Status == "Në Progres")">
+                                                    Në Progres</option>
+                                                <option value="Në Mentorim"
+                                                    selected="@(application.Status == "Në Mentorim")">Në Mentorim</option>
+                                                <option value="Në Prezantim"
+                                                    selected="@(application.Status == "Në Prezantim")">Në Prezantim</option>
+                                                <option value="Në Implementim"
+                                                    selected="@(application.Status == "Në Implementim")">Në Implementim
+                                                </option>
+                                                <option value="Zbatuar" selected="@(application.Status == "Zbatuar")">
+                                                    Zbatuar</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm expert-select"
+                                                data-application-id="@application.Id"
+                                                onchange="assignExpert(@application.Id, this.value)">
+                                                <option value="">Pa ekspert</option>
+                                                @if (experts != null)
+                                                {
+                                                    @foreach (var expert in experts)
+                                                    {
+                                                        <option value="@expert.Id"
+                                                            selected="@(application.AssignedExpertId == expert.Id)">
+                                                            @expert.Username
+                                                        </option>
+                                                    }
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                @application.CreatedAt.ToString("dd/MM/yyyy")
+                                                <br>@application.CreatedAt.ToString("HH:mm")
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-action="Details" asp-route-id="@application.Id"
+                                                    class="btn btn-outline-primary" title="Shiko Detajet">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-info" title="Shto Shënim"
+                                                    onclick="addNote(@application.Id)">
+                                                    <i class="fas fa-comment"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" title="Fshi"
+                                                    onclick="deleteApplication(@application.Id)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Shto Shënim</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <input type="hidden" id="noteApplicationId" />
+                    <div class="mb-3">
+                        <label for="noteContent" class="form-label">Shënimi:</label>
+                        <textarea class="form-control" id="noteContent" rows="4"
+                            placeholder="Shkruani shënimin tuaj këtu..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulo</button>
+                <button type="button" class="btn btn-primary" onclick="submitNote()">
+                    <i class="fas fa-save me-2"></i>Ruaj
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function filterApplications() {
+        var statusFilter = document.getElementById('statusFilter').value;
+        var categoryFilter = document.getElementById('categoryFilter').value;
+        var expertFilter = document.getElementById('expertFilter').value;
+        var searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+        var rows = document.querySelectorAll('#applicationsTable tbody tr');
+
+        rows.forEach(function (row) {
+            var status = row.getAttribute('data-status');
+            var category = row.getAttribute('data-category');
+            var expert = row.getAttribute('data-expert');
+            var title = row.getAttribute('data-title');
+
+            var showRow = true;
+
+            if (statusFilter && status !== statusFilter) showRow = false;
+            if (categoryFilter && category !== categoryFilter) showRow = false;
+            if (expertFilter && expert !== expertFilter) showRow = false;
+            if (searchInput && !title.includes(searchInput)) showRow = false;
+
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+
+    function updateStatus(applicationId, newStatus) {
+        fetch('@Url.Action("UpdateStatus", "Applications")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `applicationId=${applicationId}&status=${encodeURIComponent(newStatus)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                    // Revert the dropdown to previous value if failed
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Gabim në përditësimin e statusit', 'danger');
+                location.reload();
+            });
+    }
+
+    function assignExpert(applicationId, expertId) {
+        const expertIdValue = expertId === '' ? null : parseInt(expertId);
+
+        fetch('@Url.Action("AssignExpert", "Applications")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `applicationId=${applicationId}&expertId=${expertIdValue || ''}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                    // Revert the dropdown to previous value if failed
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Gabim në caktimin e ekspertit', 'danger');
+                location.reload();
+            });
+    }
+
+    function addNote(applicationId) {
+        document.getElementById('noteApplicationId').value = applicationId;
+        var modal = new bootstrap.Modal(document.getElementById('noteModal'));
+        modal.show();
+    }
+
+    function submitNote() {
+        var applicationId = document.getElementById('noteApplicationId').value;
+        var content = document.getElementById('noteContent').value;
+
+        if (!content.trim()) {
+            alert('Ju lutemi shkruani një shënim!');
+            return;
+        }
+
+        fetch('@Url.Action("AddNote", "Applications")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `applicationId=${applicationId}&content=${encodeURIComponent(content)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('noteModal'));
+                    modal.hide();
+                    document.getElementById('noteContent').value = '';
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Gabim në shtimin e shënimit', 'danger');
+            });
+    }
+
+    function deleteApplication(applicationId) {
+        if (confirm('Jeni të sigurt që doni të fshini këtë aplikim?')) {
+            fetch('@Url.Action("DeleteApplication", "Applications")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: `applicationId=${applicationId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        // Remove the row from the table
+                        document.querySelector(`tr:has([value="${applicationId}"])`).remove();
+                    } else {
+                        showToast(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Gabim në fshirjen e aplikimit', 'danger');
+                });
+        }
+    }
+
+
+    function showToast(message, type) {
+        // Simple toast notification
+        var toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+        toast.style.zIndex = '9999';
+        toast.innerHTML = message;
+
+        document.body.appendChild(toast);
+
+        setTimeout(function () {
+            toast.remove();
+        }, 3000);
+    }
+
+</script>
+
+<style>
+    .form-select-sm {
+        font-size: 0.875rem;
+    }
+
+    .status-select,
+    .expert-select {
+        min-width: 120px;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn-group-sm>.btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .table-responsive {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+</style>

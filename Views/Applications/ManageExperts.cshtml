@@ -1,0 +1,213 @@
+@model List<InnovationPlatform.Models.User>
+@{
+    ViewData["Title"] = "Menaxho Ekspertët";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Menaxho Ekspertët</h3>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#addExpertModal">
+                        <i class="fas fa-plus"></i> Shto Ekspert të Ri
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (Model.Count == 0)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Nuk ka ekspertë të regjistruar aktualisht.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Emri i Përdoruesit</th>
+                                        <th>Email</th>
+                                        <th>Data e Krijimit</th>
+                                        <th>Statusi</th>
+                                        <th>Veprime</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var expert in Model)
+                                    {
+                                        <tr>
+                                            <td>@expert.Id</td>
+                                            <td>@expert.Username</td>
+                                            <td>@expert.Email</td>
+                                            <td>@expert.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                @if (expert.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Aktiv</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Joaktiv</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-sm btn-outline-warning"
+                                                        onclick="toggleExpertStatus(@expert.Id)">
+                                                        @if (expert.IsActive)
+                                                        {
+                                                            <text><i class="fas fa-pause"></i> Çaktivizo</text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <text><i class="fas fa-play"></i> Aktivizo</text>
+                                                        }
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="deleteExpert(@expert.Id, '@expert.Username')">
+                                                        <i class="fas fa-trash"></i> Fshi
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expert Modal -->
+<div class="modal fade" id="addExpertModal" tabindex="-1" aria-labelledby="addExpertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addExpertModalLabel">Shto Ekspert të Ri</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addExpertForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="expertUsername" class="form-label">Emri i Përdoruesit <span
+                                class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="expertUsername" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expertEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="expertEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expertPassword" class="form-label">Fjalëkalimi <span
+                                class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="expertPassword" name="password" required
+                            minlength="6">
+                        <div class="form-text">Fjalëkalimi duhet të ketë të paktën 6 karaktere.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulo</button>
+                    <button type="submit" class="btn btn-primary">Shto Ekspert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add Expert Form Submission
+        document.getElementById('addExpertForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            fetch('@Url.Action("AddExpert", "Applications")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Gabim: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ndodhi një gabim gjatë shtimit të ekspertit.');
+                });
+        });
+
+        // Toggle Expert Status
+        function toggleExpertStatus(expertId) {
+            if (confirm('Jeni i sigurt që dëshironi të ndryshoni statusin e këtij eksperti?')) {
+                fetch('@Url.Action("ToggleExpertStatus", "Applications")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ expertId: expertId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert('Gabim: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ndodhi një gabim gjatë ndryshimit të statusit.');
+                    });
+            }
+        }
+
+        // Delete Expert
+        function deleteExpert(expertId, expertName) {
+            if (confirm(`Jeni i sigurt që dëshironi të fshini ekspertin "${expertName}"? Ky veprim nuk mund të zhbëhet.`)) {
+                fetch('@Url.Action("DeleteExpert", "Applications")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ expertId: expertId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert('Gabim: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ndodhi një gabim gjatë fshirjes së ekspertit.');
+                    });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,319 @@
+@model IEnumerable<InnovationPlatform.Models.Application>
+
+@{
+    ViewData["Title"] = "Paneli i Ekspertit";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>Paneli i Ekspertit
+                </h1>
+                <div>
+                    <span class="badge bg-info fs-6">@Model.Count() aplikime të caktuara</span>
+                </div>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-clipboard-list fa-5x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">Nuk keni aplikime të caktuara</h4>
+                    <p class="text-muted mb-4">Kur të caktohen aplikime për ju, ato do të shfaqen këtu.</p>
+                </div>
+            }
+            else
+            {
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                                <h3>@Model.Count()</h3>
+                                <p class="mb-0">Total të Caktuara</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "I Ri" || a.Status == "Në Progres")</h3>
+                                <p class="mb-0">Në Pritje</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-handshake fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "Në Mentorim")</h3>
+                                <p class="mb-0">Në Mentorim</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "Zbatuar")</h3>
+                                <p class="mb-0">Të Përfunduara</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Applications Table -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Aplikimet e Caktuara për Ju
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Titulli</th>
+                                        <th>Aplikuesi</th>
+                                        <th>Kategoria</th>
+                                        <th>Statusi</th>
+                                        <th>Data e Dorëzimit</th>
+                                        <th>Veprime</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var application in Model.OrderByDescending(a => a.CreatedAt))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-secondary">#@application.Id</span>
+                                            </td>
+                                            <td>
+                                                <strong>@application.Title</strong>
+                                                @if (application.Files != null && application.Files.Any())
+                                                {
+                                                    <br>
+                                        
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-paperclip me-1"></i>@application.Files.Count dokument(a)
+                                                    </small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (application.User != null)
+                                                {
+                                                    <div>
+                                                        <strong>@application.User.Username</strong>
+                                                        @if (!string.IsNullOrEmpty(application.User.Email))
+                                                        {
+                                                            <br>
+                                            
+                                                            <small class="text-muted">@application.User.Email</small>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Anonim</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="fas fa-tag me-1"></i>@application.Category?.Name
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetStatusColor(application.Status)">
+                                                    @application.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    @application.CreatedAt.ToString("dd/MM/yyyy")
+                                                    <br>@application.CreatedAt.ToString("HH:mm")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-action="Details" asp-route-id="@application.Id"
+                                                        class="btn btn-outline-primary" title="Shiko Detajet">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    @if (application.Status == "I Ri" || application.Status == "Në Progres")
+                                                    {
+                                                        <button type="button" class="btn btn-outline-success"
+                                                            title="Dërgo për Aprovim" onclick="sendForApproval(@application.Id)">
+                                                            <i class="fas fa-paper-plane"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-bolt me-2"></i>Veprime të Shpejta
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <button class="btn btn-outline-primary w-100" onclick="filterByStatus('I Ri')">
+                                            <i class="fas fa-filter me-2"></i>Shfaq të Reja
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <button class="btn btn-outline-info w-100" onclick="filterByStatus('Në Mentorim')">
+                                            <i class="fas fa-handshake me-2"></i>Në Mentorim
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <button class="btn btn-outline-secondary w-100" onclick="showAll()">
+                                            <i class="fas fa-list me-2"></i>Shfaq të Gjitha
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Send for Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dërgo për Aprovim</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approvalForm">
+                    <input type="hidden" id="applicationId" />
+                    <div class="mb-3">
+                        <label for="approvalNote" class="form-label">Shënim për Ekzekutivin:</label>
+                        <textarea class="form-control" id="approvalNote" rows="4"
+                            placeholder="Shkruani një shënim për rekomandimin tuaj..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recommendedStatus" class="form-label">Statusi i Rekomanduar:</label>
+                        <select class="form-select" id="recommendedStatus">
+                            <option value="Pranuar">Pranuar për Mentorim</option>
+                            <option value="Refuzuar">Refuzuar</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulo</button>
+                <button type="button" class="btn btn-primary" onclick="submitApproval()">
+                    <i class="fas fa-paper-plane me-2"></i>Dërgo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "I Ri" => "secondary",
+            "Në Progres" => "primary",
+            "Në Mentorim" => "info",
+            "Në Prezantim" => "warning",
+            "Në Implementim" => "success",
+            "Zbatuar" => "success",
+            _ => "secondary"
+        };
+    }
+}
+
+<script>
+    function sendForApproval(applicationId) {
+        document.getElementById('applicationId').value = applicationId;
+        var modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+        modal.show();
+    }
+
+    function submitApproval() {
+        var applicationId = document.getElementById('applicationId').value;
+        var note = document.getElementById('approvalNote').value;
+        var status = document.getElementById('recommendedStatus').value;
+
+        // Here you would typically send an AJAX request to update the application
+        // For now, we'll just show a success message
+        alert('Aplikimi u dërgua për aprovim me sukses!');
+
+        var modal = bootstrap.Modal.getInstance(document.getElementById('approvalModal'));
+        modal.hide();
+
+        // Refresh the page to show updated status
+        location.reload();
+    }
+
+    function filterByStatus(status) {
+        var rows = document.querySelectorAll('tbody tr');
+        rows.forEach(function (row) {
+            // Get the status cell (5th column, index 4)
+            var statusCell = row.cells[4];
+            var statusBadge = statusCell.querySelector('.badge');
+            if (statusBadge && statusBadge.textContent.trim() === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function showAll() {
+        var rows = document.querySelectorAll('tbody tr');
+        rows.forEach(function (row) {
+            row.style.display = '';
+        });
+    }
+</script>
+
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn-group-sm>.btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+</style>

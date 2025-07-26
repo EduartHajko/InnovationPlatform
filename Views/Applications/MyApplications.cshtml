@@ -1,0 +1,172 @@
+@model IEnumerable<InnovationPlatform.Models.Application>
+
+@{
+    ViewData["Title"] = "Aplikimet e Mia";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>Aplikimet e Mia
+                </h1>
+                <a asp-action="Submit" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Dorëzo Aplikim të Ri
+                </a>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-inbox fa-5x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">Nuk keni dorëzuar asnjë aplikim ende</h4>
+                    <p class="text-muted mb-4">Filloni duke dorëzuar idenë tuaj të parë inovatore!</p>
+                    <a asp-action="Submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-lightbulb me-2"></i>Dorëzo Idenë Tënde
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var application in Model)
+                    {
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-@GetStatusColor(application.Status)">
+                                        @application.Status
+                                    </span>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @application.CreatedAt.ToString("dd/MM/yyyy")
+                                    </small>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">@application.Title</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="fas fa-tag me-1"></i>@application.Category?.Name
+                                    </p>
+                                    <p class="card-text">
+                                        @(application.Description.Length > 150 ? 
+                                          application.Description.Substring(0, 150) + "..." : 
+                                          application.Description)
+                                    </p>
+                                    
+                                    <div class="row text-center mt-3">
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">Grupmoshe</small>
+                                            <strong>@application.AgeGroup</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">Bashkia</small>
+                                            <strong>@application.Municipality</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">Dokumenta</small>
+                                            <strong>@(application.Files?.Count ?? 0)</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a asp-action="Details" asp-route-id="@application.Id" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Shiko Detajet
+                                        </a>
+                                        
+                                        @if (!string.IsNullOrEmpty(application.PrototypeUrl))
+                                        {
+                                            <a href="@application.PrototypeUrl" target="_blank" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-external-link-alt me-1"></i>Prototip
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Summary Statistics -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h4 class="mb-3">Statistikat e Mia</h4>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                <h3>@Model.Count()</h3>
+                                <p class="mb-0">Total Aplikime</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "Zbatuar")</h3>
+                                <p class="mb-0">Zbatuar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-cogs fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "Në Implementim")</h3>
+                                <p class="mb-0">Në Implementim</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <h3>@Model.Count(a => a.Status == "I Ri" || a.Status == "Në Progres")</h3>
+                                <p class="mb-0">Në Pritje</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "I Ri" => "secondary",
+            "Në Progres" => "primary",
+            "Në Mentorim" => "info",
+            "Në Prezantim" => "warning",
+            "Në Implementim" => "success",
+            "Zbatuar" => "success",
+            _ => "secondary"
+        };
+    }
+}
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card-footer {
+    border-top: 1px solid rgba(0,0,0,.125);
+}
+</style>

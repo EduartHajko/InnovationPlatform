@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <section>
+            <form id="account" method="post">
+                <h2>Use a local account to log in.</h2>
+                <hr />
+                @if (!string.IsNullOrEmpty(ViewBag.Error))
+                {
+                    <div class="text-danger">
+                        <ul>
+                            <li>@ViewBag.Error</li>
+                        </ul>
+                    </div>
+                }
+                <div class="form-floating">
+                    <input name="email" class="form-control" autocomplete="username" aria-required="true"
+                        placeholder="name@example.com" />
+                    <label for="email">Email or Username</label>
+                </div>
+                <div class="form-floating">
+                    <input name="password" type="password" class="form-control" autocomplete="current-password"
+                        aria-required="true" placeholder="password" />
+                    <label for="password">Password</label>
+                </div>
+                <div>
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <div class="col-md-6 col-md-offset-2">
+        <section>
+            <h3>Use another service to log in.</h3>
+            <hr />
+            <p>
+                There are no external authentication services configured. See this <a
+                    href="https://go.microsoft.com/fwlink/?LinkID=532715">article about setting up this ASP.NET
+                    application to support logging in via external services</a>.
+            </p>
+        </section>
+    </div>
+</div>

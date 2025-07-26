@@ -1,0 +1,274 @@
+@{
+    ViewData["Title"] = "Dashboard Ekzekutiv";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-bar me-2"></i>Dashboard Ekzekutiv</h2>
+    <a asp-action="ExecutiveApplications" class="btn btn-primary">
+        <i class="fas fa-list me-2"></i>Menaxho Aplikime
+    </a>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@ViewBag.TotalApplications</h4>
+                        <p class="card-text">Aplikime Totale</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-alt fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">
+                            @{
+                                var implementedCount = ViewBag.Statuses != null ?
+                                ((IEnumerable<dynamic>)ViewBag.Statuses).FirstOrDefault(s => s.Status == "Zbatuar")?.Count
+                                ?? 0 : 0;
+                            }
+                            @implementedCount
+                        </h4>
+                        <p class="card-text">Të Zbatuara</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">
+                            @{
+                                var inProgressCount = ViewBag.Statuses != null ?
+                                ((IEnumerable<dynamic>)ViewBag.Statuses).Where(s => s.Status == "Në Progres" || s.Status ==
+                                "Në Mentorim").Sum(s => s.Count) : 0;
+                            }
+                            @inProgressCount
+                        </h4>
+                        <p class="card-text">Në Proces</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">
+                            @{
+                                var newCount = ViewBag.Statuses != null ?
+                                ((IEnumerable<dynamic>)ViewBag.Statuses).FirstOrDefault(s => s.Status == "I Ri")?.Count ?? 0
+                                : 0;
+                            }
+                            @newCount
+                        </h4>
+                        <p class="card-text">Të Reja</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-plus-circle fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <!-- Age Groups Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Aplikime sipas Grupmoshës</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ageGroupChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Aplikime sipas Fushës</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Status Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Aplikime sipas Statusit</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Municipalities Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Aplikime sipas Bashkive (Top 10)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="municipalityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Age Groups Chart
+        const ageGroupData = @Html.Raw(Json.Serialize(ViewBag.AgeGroups ?? new List<object>()));
+        const ageGroupCtx = document.getElementById('ageGroupChart').getContext('2d');
+        new Chart(ageGroupCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ageGroupData.map(item => item.ageGroup),
+                datasets: [{
+                    data: ageGroupData.map(item => item.count),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Categories Chart
+        const categoryData = @Html.Raw(Json.Serialize(ViewBag.Categories ?? new List<object>()));
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: categoryData.map(item => item.category.length > 20 ? item.category.substring(0, 20) + '...' : item.category),
+                datasets: [{
+                    label: 'Aplikime',
+                    data: categoryData.map(item => item.count),
+                    backgroundColor: '#36A2EB',
+                    borderColor: '#36A2EB',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Status Chart
+        const statusData = @Html.Raw(Json.Serialize(ViewBag.Statuses ?? new List<object>()));
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: statusData.map(item => item.status),
+                datasets: [{
+                    data: statusData.map(item => item.count),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Municipalities Chart (Top 10)
+        const municipalityData = @Html.Raw(Json.Serialize(ViewBag.Municipalities ?? new List<object>()));
+        const topMunicipalities = municipalityData.sort((a, b) => b.count - a.count).slice(0, 10);
+        const municipalityCtx = document.getElementById('municipalityChart').getContext('2d');
+        new Chart(municipalityCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: topMunicipalities.map(item => item.municipality),
+                datasets: [{
+                    label: 'Aplikime',
+                    data: topMunicipalities.map(item => item.count),
+                    backgroundColor: '#4BC0C0',
+                    borderColor: '#4BC0C0',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+}

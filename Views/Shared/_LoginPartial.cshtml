@@ -1,0 +1,56 @@
+@using System.Security.Claims
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<ul class="navbar-nav">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="fas fa-user me-1"></i>@User.Identity?.Name
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                @if (userRole == "Applicant")
+                {
+                    <li><a class="dropdown-item" asp-controller="Applications" asp-action="MyApplications">
+                            <i class="fas fa-file-alt me-2"></i>Aplikimet e Mia
+                        </a></li>
+                }
+                else if (userRole == "Expert")
+                {
+                    <li><a class="dropdown-item" asp-controller="Applications" asp-action="ExpertDashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Ekspert
+                        </a></li>
+                }
+                else if (userRole == "Executive")
+                {
+                    <li><a class="dropdown-item" asp-controller="Applications" asp-action="ExecutiveDashboard">
+                            <i class="fas fa-chart-bar me-2"></i>Dashboard Ekzekutiv
+                        </a></li>
+                    <li><a class="dropdown-item" asp-controller="Applications" asp-action="ExecutiveApplications">
+                            <i class="fas fa-list me-2"></i>Menaxho Aplikime
+                        </a></li>
+                }
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li>
+                    <form class="form-inline" asp-controller="Auth" asp-action="Logout" method="post">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-2"></i>Dil
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Auth" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-1"></i>Hyr
+            </a>
+        </li>
+    }
+</ul>

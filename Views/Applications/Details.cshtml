@@ -1,0 +1,354 @@
+@model InnovationPlatform.Models.Application
+
+@{
+    ViewData["Title"] = "Detajet e Aplikimit";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-file-alt me-2 text-primary"></i>@Model.Title
+                    </h1>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-@GetStatusColor(Model.Status) me-2">@Model.Status</span>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>Dorëzuar më @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                    </div>
+                </div>
+                <div>
+                    <a asp-action="MyApplications" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Kthehu te Lista
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Application Details Card -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Detajet e Aplikimit
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong class="text-muted">Kategoria:</strong>
+                                    <p class="mb-0">
+                                        <i class="fas fa-tag me-1 text-primary"></i>@Model.Category?.Name
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-muted">Grupmoshe:</strong>
+                                    <p class="mb-0">
+                                        <i class="fas fa-users me-1 text-info"></i>@Model.AgeGroup
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong class="text-muted">Bashkia:</strong>
+                                    <p class="mb-0">
+                                        <i class="fas fa-map-marker-alt me-1 text-success"></i>@Model.Municipality
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-muted">Përditësuar:</strong>
+                                    <p class="mb-0">
+                                        <i class="fas fa-clock me-1 text-warning"></i>@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.PrototypeUrl))
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <strong class="text-muted">URL e Prototipit:</strong>
+                                        <p class="mb-0">
+                                            <a href="@Model.PrototypeUrl" target="_blank" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-external-link-alt me-1"></i>Shiko Prototipin
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Description Card -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-align-left me-2"></i>Përshkrimi i Detajuar
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="description-content">
+                                @Html.Raw(Model.Description.Replace("\n", "<br>"))
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Files Card -->
+                    @if (Model.Files != null && Model.Files.Any())
+                    {
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-paperclip me-2"></i>Dokumentat e Bashkangjitura (@Model.Files.Count)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @foreach (var file in Model.Files)
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <div class="d-flex align-items-center p-3 border rounded">
+                                                <div class="me-3">
+                                                    <i class="fas fa-file-@GetFileIcon(file.FileType) fa-2x text-@GetFileColor(file.FileType)"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">@file.OriginalName</h6>
+                                                    <small class="text-muted">
+                                                        @file.FileType.ToUpper() • @file.UploadDate.ToString("dd/MM/yyyy")
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <a href="/uploads/@file.FileName" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Notes Section (if any) -->
+                    @if (Model.Notes != null && Model.Notes.Any())
+                    {
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-comments me-2"></i>Shënime dhe Komente
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var note in Model.Notes.OrderByDescending(n => n.CreatedAt))
+                                {
+                                    <div class="border-start border-primary border-3 ps-3 mb-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <strong class="text-primary">@note.User?.Username</strong>
+                                            <small class="text-muted">@note.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                        </div>
+                                        <p class="mb-0">@note.NoteText</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Status Timeline -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks me-2"></i>Statusi i Aplikimit
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                @{
+                                    var statuses = new[] { "I Ri", "Në Progres", "Në Mentorim", "Në Prezantim", "Në Implementim", "Zbatuar" };
+                                    var currentIndex = Array.IndexOf(statuses, Model.Status);
+                                }
+                                
+                                @for (int i = 0; i < statuses.Length; i++)
+                                {
+                                    var isActive = i <= currentIndex;
+                                    var isCurrent = i == currentIndex;
+                                    
+                                    <div class="timeline-item @(isActive ? "active" : "") @(isCurrent ? "current" : "")">
+                                        <div class="timeline-marker">
+                                            <i class="fas @(isActive ? "fa-check-circle" : "fa-circle")"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-0">@statuses[i]</h6>
+                                            @if (isCurrent)
+                                            {
+                                                <small class="text-primary">Statusi aktual</small>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Application Info -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info me-2"></i>Informacione
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong class="text-muted d-block">ID e Aplikimit:</strong>
+                                <span class="badge bg-secondary">#@Model.Id</span>
+                            </div>
+                            
+                            @if (Model.AssignedExpert != null)
+                            {
+                                <div class="mb-3">
+                                    <strong class="text-muted d-block">Eksperti i Caktuar:</strong>
+                                    <span class="text-primary">@Model.AssignedExpert.Username</span>
+                                </div>
+                            }
+                            
+                            <div class="mb-3">
+                                <strong class="text-muted d-block">Dokumenta:</strong>
+                                <span class="badge bg-info">@(Model.Files?.Count ?? 0) file(s)</span>
+                            </div>
+                            
+                            <div class="mb-0">
+                                <strong class="text-muted d-block">Shënime:</strong>
+                                <span class="badge bg-warning">@(Model.Notes?.Count ?? 0) shënim(e)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "I Ri" => "secondary",
+            "Në Progres" => "primary",
+            "Në Mentorim" => "info",
+            "Në Prezantim" => "warning",
+            "Në Implementim" => "success",
+            "Zbatuar" => "success",
+            _ => "secondary"
+        };
+    }
+    
+    private string GetFileIcon(string fileType)
+    {
+        return fileType.ToLower() switch
+        {
+            "pdf" => "pdf",
+            "doc" or "docx" => "word",
+            "ppt" or "pptx" => "powerpoint",
+            "mov" => "video",
+            _ => "alt"
+        };
+    }
+    
+    private string GetFileColor(string fileType)
+    {
+        return fileType.ToLower() switch
+        {
+            "pdf" => "danger",
+            "doc" or "docx" => "primary",
+            "ppt" or "pptx" => "warning",
+            "mov" => "success",
+            _ => "secondary"
+        };
+    }
+}
+
+<style>
+.description-content {
+    line-height: 1.6;
+    font-size: 1.1em;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-item.active .timeline-marker {
+    color: #28a745;
+}
+
+.timeline-item.current .timeline-marker {
+    color: #007bff;
+    font-size: 1.1em;
+}
+
+.timeline-item.active::before {
+    background: #28a745;
+}
+
+.timeline-content h6 {
+    color: #6c757d;
+}
+
+.timeline-item.active .timeline-content h6 {
+    color: #28a745;
+}
+
+.timeline-item.current .timeline-content h6 {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>

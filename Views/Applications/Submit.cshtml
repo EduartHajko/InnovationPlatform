@@ -1,0 +1,196 @@
+@model InnovationPlatform.Models.Application
+@{
+    ViewData["Title"] = "Dorëzo Aplikim";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-paper-plane me-2"></i>Dorëzo Idenë Tënde Inovatore
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Plotëso formularin më poshtë për të dorëzuar idenë tënde inovatore. Të gjitha fushat me (*) janë të detyrueshme.
+                </p>
+
+                <form asp-action="Submit" method="post" enctype="multipart/form-data" id="applicationForm">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Title" class="form-label">Titulli i Projektit *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Shkruaj titullin e projektit tënd..." required />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoryId" class="form-label">Fusha e Inovacionit *</label>
+                            <select asp-for="CategoryId" class="form-select" required>
+                                <option value="">Zgjidh fushën...</option>
+                                @foreach (var category in ViewBag.Categories as List<InnovationPlatform.Models.Category> ?? new List<InnovationPlatform.Models.Category>())
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AgeGroup" class="form-label">Grupmosha *</label>
+                            <select asp-for="AgeGroup" class="form-select" required>
+                                <option value="">Zgjidh grupmoshën...</option>
+                                <option value="15-18">Nxënës (15-18 vjeç)</option>
+                                <option value="19-24">Studentë (19-24 vjeç)</option>
+                                <option value="25-29">Profesionistë (25-29 vjeç)</option>
+                            </select>
+                            <span asp-validation-for="AgeGroup" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Municipality" class="form-label">Bashkia e Origjinës *</label>
+                            <select asp-for="Municipality" class="form-select" required>
+                                <option value="">Zgjidh bashkinë...</option>
+                                <option value="Tiranë">Tiranë</option>
+                                <option value="Durrës">Durrës</option>
+                                <option value="Shkodër">Shkodër</option>
+                                <option value="Elbasan">Elbasan</option>
+                                <option value="Vlorë">Vlorë</option>
+                                <option value="Korçë">Korçë</option>
+                                <option value="Fier">Fier</option>
+                                <option value="Berat">Berat</option>
+                                <option value="Lushnjë">Lushnjë</option>
+                                <option value="Pogradec">Pogradec</option>
+                                <option value="Gjirokastër">Gjirokastër</option>
+                                <option value="Sarandë">Sarandë</option>
+                                <option value="Lezhë">Lezhë</option>
+                                <option value="Kukës">Kukës</option>
+                                <option value="Dibër">Dibër</option>
+                                <option value="Krujë">Krujë</option>
+                                <option value="Kavajë">Kavajë</option>
+                                <option value="Kamëz">Kamëz</option>
+                                <option value="Patos">Patos</option>
+                                <option value="Rrogozhinë">Rrogozhinë</option>
+                                <option value="Të tjera">Të tjera</option>
+                            </select>
+                            <span asp-validation-for="Municipality" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Description" class="form-label">Përshkrimi i Detajuar i Idesë/Projektit *</label>
+                            <textarea asp-for="Description" class="form-control" rows="8" 
+                                placeholder="Përshkruaj idenë tënde në detaje (minimumi 100 fjalë)..." 
+                                required></textarea>
+                            <div class="form-text">
+                                <span id="wordCount">0</span> fjalë (minimumi 100 fjalë)
+                            </div>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="PrototypeUrl" class="form-label">URL e Prototipit/Prezantimit</label>
+                            <input asp-for="PrototypeUrl" type="url" class="form-control" 
+                                placeholder="https://example.com/prototype" />
+                            <div class="form-text">Opsionale - Nëse ke një prototip online ose prezantim</div>
+                            <span asp-validation-for="PrototypeUrl" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label for="files" class="form-label">Dokumenta Mbështetëse</label>
+                            <input type="file" class="form-control" id="files" name="files" multiple 
+                                accept=".doc,.docx,.mov,.ppt,.pptx,.pdf,.txt" />
+                            <div class="form-text">
+                                Mund të ngarkosh deri në 5 dokumente (Doc, Mov, PPT, PDF, Word Doc). Maksimumi 16MB për file.
+                            </div>
+                            <div id="fileList" class="mt-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Shënim:</strong> Pasi të dorëzosh aplikimin, do të marrësh një konfirmim. 
+                                Nëse je i regjistruar, mund të ndiqësh statusin e aplikimit tënd në seksionin "Aplikimet e Mia".
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg me-3" id="submitBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Dorëzo Aplikimin
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Anulo
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Word counter
+        document.getElementById('Description').addEventListener('input', function() {
+            const text = this.value.trim();
+            const words = text === '' ? 0 : text.split(/\s+/).length;
+            document.getElementById('wordCount').textContent = words;
+            
+            if (words < 100) {
+                document.getElementById('wordCount').className = 'text-danger';
+            } else {
+                document.getElementById('wordCount').className = 'text-success';
+            }
+        });
+
+        // File list display
+        document.getElementById('files').addEventListener('change', function() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            if (this.files.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'list-group list-group-flush';
+                
+                Array.from(this.files).slice(0, 5).forEach(file => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <span><i class="fas fa-file me-2"></i>${file.name}</span>
+                        <span class="badge bg-secondary">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    `;
+                    ul.appendChild(li);
+                });
+                
+                fileList.appendChild(ul);
+                
+                if (this.files.length > 5) {
+                    const warning = document.createElement('div');
+                    warning.className = 'alert alert-warning mt-2';
+                    warning.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Vetëm 5 dokumentat e para do të ngarkohen.';
+                    fileList.appendChild(warning);
+                }
+            }
+        });
+
+        // Form submission
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Duke dorëzuar...';
+        });
+    </script>
+}
