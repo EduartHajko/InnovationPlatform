@@ -13,6 +13,7 @@ The Innovation Platform is designed to streamline the process of submitting, rev
 - Upload supporting documents (up to 5 files)
 - Track application status
 - View application history
+- Applicant can view only his aplications if he is loged in if is not loged in when creating an application only admin can view them and he can not view it so a simple user can send applications without being loged in
 
 ### For Experts
 - Review assigned applications
