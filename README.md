@@ -59,8 +59,9 @@ InnovationPlatform/
 1. Clone the repository
 2. Navigate to the project directory
 3. Restore NuGet packages: `dotnet restore`
-4. Run the application: `dotnet run`
-5. Open browser to `https://localhost:5001`
+4. You can delete courrent db and app will recreate one on startup or you can use courrent'
+5. Run the application: `dotnet run`
+6. Open browser to `https://localhost:5001`
 
 ### Default Users
 The system includes test users that can be created via the debug endpoints:
