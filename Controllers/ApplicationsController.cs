@@ -26,7 +26,7 @@ namespace InnovationPlatform.Controllers
 
 
 
-
+            // In a full implementation, you would check if the user is authenticated and pre-fill user info    
 
 
         }
