@@ -31,6 +31,14 @@ namespace InnovationPlatform.Controllers
 
         }
 
+        // GET: Applications
+        public async Task<IActionResult> Aplications ()
+        {
+            ViewBag.Aplications = await _context.Applications.ToListAsync();
+            return View();
+
+
+        }
         // POST: Applications/Submit
         [HttpPost]
         [ValidateAntiForgeryToken]
