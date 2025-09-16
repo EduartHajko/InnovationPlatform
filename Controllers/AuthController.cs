@@ -90,6 +90,11 @@ namespace InnovationPlatform.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult ReRegister()
+        {
+            return View();
+        }
         [HttpPost]
         public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword)
         {
