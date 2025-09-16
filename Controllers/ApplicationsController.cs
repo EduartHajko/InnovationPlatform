@@ -23,6 +23,12 @@ namespace InnovationPlatform.Controllers
         {
             ViewBag.Categories = await _context.Categories.ToListAsync();
             return View();
+
+
+
+
+
+
         }
 
         // POST: Applications/Submit
