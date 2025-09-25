@@ -1,1 +1,1 @@
-ViewBag.Applications = await _context.Categories.ToListAsync();
+ViewBag.Applications = await _context.Applications.ToListAsync();
