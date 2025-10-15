@@ -592,7 +592,7 @@ namespace InnovationPlatform.Controllers
         // POST: Applications/ToggleExpertStatus
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ToggleExpertStatus(int expertId)
+        public IActionResult ToggleExpertStatus(int expertId)
         {
             try
             {
@@ -601,14 +601,14 @@ namespace InnovationPlatform.Controllers
                     return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
-                var expert = await _context.SimpleUsers.FindAsync(expertId);
+                var expert =  _context.SimpleUsers.Find(expertId);
                 if (expert == null || expert.Role != "Expert")
                 {
                     return Json(new { success = false, message = "Eksperti nuk u gjet." });
                 }
 
                 expert.IsActive = !expert.IsActive;
-                await _context.SaveChangesAsync();
+                 _context.SaveChangesAsync();
 
                 string status = expert.IsActive ? "aktivizua" : "çaktivizua";
                 return Json(new { success = true, message = $"Eksperti u {status} me sukses!" });
