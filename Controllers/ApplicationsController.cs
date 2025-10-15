@@ -53,14 +53,14 @@ namespace InnovationPlatform.Controllers
                     string.IsNullOrWhiteSpace(application.AgeGroup) ||
                     string.IsNullOrWhiteSpace(application.Municipality))
                 {
-                    TempData["Error"] = "TÃ« gjitha fushat e detyrueshme duhet tÃ« plotÃ«sohen.";
+                    TempData["Error"] = "Të gjitha fushat e detyrueshme duhet të plotësohen.";
                     ViewBag.Categories = await _context.Categories.ToListAsync();
                     return View(application);
                 }
 
                 if (application.Description.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length < 100)
                 {
-                    TempData["Error"] = "PÃ«rshkrimi duhet tÃ« ketÃ« tÃ« paktÃ«n 100 fjalÃ«.";
+                    TempData["Error"] = "Përshkrimi duhet të ketë të paktën 100 fjalë.";
                     ViewBag.Categories = await _context.Categories.ToListAsync();
                     return View(application);
                 }
@@ -88,7 +88,7 @@ namespace InnovationPlatform.Controllers
                     await HandleFileUploads(files, application.Id);
                 }
 
-                TempData["Success"] = "Aplikimi juaj u dorÃ«zua me sukses!";
+                TempData["Success"] = "Aplikimi juaj u dorëzua me sukses!";
 
                 if (User.Identity?.IsAuthenticated == true)
                 {
@@ -101,7 +101,7 @@ namespace InnovationPlatform.Controllers
             }
             catch (Exception)
             {
-                TempData["Error"] = "Ndodhi njÃ« gabim gjatÃ« dorÃ«zimit tÃ« aplikimit.";
+                TempData["Error"] = "Ndodhi një gabim gjatë dorëzimit të aplikimit.";
                 ViewBag.Categories = await _context.Categories.ToListAsync();
                 return View(application);
             }
@@ -183,7 +183,7 @@ namespace InnovationPlatform.Controllers
             // Check if user has Expert role from claims (simple auth)
             if (!User.IsInRole("Expert"))
             {
-                TempData["Error"] = "Nuk keni akses nÃ« kÃ«tÃ« faqe.";
+                TempData["Error"] = "Nuk keni akses në këtë faqe.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -213,7 +213,7 @@ namespace InnovationPlatform.Controllers
             // Check if user has Executive role from claims (simple auth)
             if (!User.IsInRole("Executive"))
             {
-                TempData["Error"] = "Nuk keni akses nÃ« kÃ«tÃ« faqe.";
+                TempData["Error"] = "Nuk keni akses në këtë faqe.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -257,7 +257,7 @@ namespace InnovationPlatform.Controllers
             // Check if user has Executive role from claims (simple auth)
             if (!User.IsInRole("Executive"))
             {
-                TempData["Error"] = "Nuk keni akses nÃ« kÃ«tÃ« faqe.";
+                TempData["Error"] = "Nuk keni akses në këtë faqe.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -331,7 +331,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 var application = await _context.Applications.FindAsync(applicationId);
@@ -344,7 +344,7 @@ namespace InnovationPlatform.Controllers
                 application.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Statusi u pÃ«rditÃ«sua me sukses!" });
+                return Json(new { success = true, message = "Statusi u përditësua me sukses!" });
             }
             catch (Exception ex)
             {
@@ -361,7 +361,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 var application = await _context.Applications.FindAsync(applicationId);
@@ -401,7 +401,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 // Verify expert exists
@@ -440,7 +440,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (string.IsNullOrWhiteSpace(content))
                 {
-                    return Json(new { success = false, message = "ShÃ«nimi nuk mund tÃ« jetÃ« bosh." });
+                    return Json(new { success = false, message = "Shënimi nuk mund të jetë bosh." });
                 }
 
                 var application = await _context.Applications.FindAsync(applicationId);
@@ -452,7 +452,7 @@ namespace InnovationPlatform.Controllers
                 var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
                 {
-                    return Json(new { success = false, message = "Gabim nÃ« identifikimin e pÃ«rdoruesit." });
+                    return Json(new { success = false, message = "Gabim në identifikimin e përdoruesit." });
                 }
 
                 var note = new Note
@@ -466,7 +466,7 @@ namespace InnovationPlatform.Controllers
                 _context.Notes.Add(note);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "ShÃ«nimi u shtua me sukses!" });
+                return Json(new { success = true, message = "Shënimi u shtua me sukses!" });
             }
             catch (Exception ex)
             {
@@ -483,7 +483,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 var application = await _context.Applications
@@ -523,7 +523,7 @@ namespace InnovationPlatform.Controllers
             // Check if user has Executive role from claims (simple auth)
             if (!User.IsInRole("Executive"))
             {
-                TempData["Error"] = "Nuk keni akses nÃ« kÃ«tÃ« faqe.";
+                TempData["Error"] = "Nuk keni akses në këtë faqe.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -544,18 +544,18 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 // Validation
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
                 {
-                    return Json(new { success = false, message = "TÃ« gjitha fushat janÃ« tÃ« detyrueshme." });
+                    return Json(new { success = false, message = "Të gjitha fushat janë të detyrueshme." });
                 }
 
                 if (password.Length < 6)
                 {
-                    return Json(new { success = false, message = "FjalÃ«kalimi duhet tÃ« ketÃ« tÃ« paktÃ«n 6 karaktere." });
+                    return Json(new { success = false, message = "Fjalëkalimi duhet të ketë të paktën 6 karaktere." });
                 }
 
                 // Check if user already exists
@@ -564,7 +564,7 @@ namespace InnovationPlatform.Controllers
 
                 if (existingUser != null)
                 {
-                    return Json(new { success = false, message = "NjÃ« pÃ«rdorues me kÃ«tÃ« email ose emÃ«r pÃ«rdoruesi ekziston tashmÃ«." });
+                    return Json(new { success = false, message = "Një përdorues me këtë email ose emër përdoruesi ekziston tashmë." });
                 }
 
                 // Create new expert
@@ -598,7 +598,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 var expert =  _context.SimpleUsers.Find(expertId);
@@ -610,7 +610,7 @@ namespace InnovationPlatform.Controllers
                 expert.IsActive = !expert.IsActive;
                  _context.SaveChangesAsync();
 
-                string status = expert.IsActive ? "aktivizua" : "Ã§aktivizua";
+                string status = expert.IsActive ? "aktivizua" : "çaktivizua";
                 return Json(new { success = true, message = $"Eksperti u {status} me sukses!" });
             }
             catch (Exception ex)
@@ -628,7 +628,7 @@ namespace InnovationPlatform.Controllers
             {
                 if (!User.IsInRole("Executive"))
                 {
-                    return Json(new { success = false, message = "Nuk keni akses pÃ«r kÃ«tÃ« veprim." });
+                    return Json(new { success = false, message = "Nuk keni akses për këtë veprim." });
                 }
 
                 var expert = await _context.SimpleUsers.FindAsync(expertId);
@@ -644,7 +644,7 @@ namespace InnovationPlatform.Controllers
 
                 if (assignedApplications > 0)
                 {
-                    return Json(new { success = false, message = $"Eksperti nuk mund tÃ« fshihet sepse Ã«shtÃ« caktuar nÃ« {assignedApplications} aplikime." });
+                    return Json(new { success = false, message = $"Eksperti nuk mund të fshihet sepse është caktuar në {assignedApplications} aplikime." });
                 }
 
                 _context.SimpleUsers.Remove(expert);
